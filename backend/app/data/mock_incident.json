@@ -1,0 +1,13 @@
+{
+  "id": "INC-2024-DL-00142",
+  "type": "Armed Robbery",
+  "severity": "CRITICAL",
+  "origin": "Connaught Place Metro, Gate 2",
+  "time": "14:23:45",
+  "last_seen": "Karol Bagh Metro",
+  "duration": "13 minutes",
+  "suspect": {
+    "description": "Male, 25-30, Blue jacket, Black helmet",
+    "vehicle": "Motorcycle DL-8C-AV-4523"
+  }
+}

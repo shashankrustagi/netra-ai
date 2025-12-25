@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "type": "FACE MATCH",
+    "priority": "HIGH",
+    "location": "Karol Bagh",
+    "camera": "CAM-0443",
+    "confidence": "91.6%",
+    "time": "23:30:19"
+  },
+  {
+    "id": 2,
+    "type": "VEHICLE ANPR",
+    "priority": "MEDIUM",
+    "location": "Connaught Place",
+    "camera": "CAM-7417",
+    "confidence": "87.1%",
+    "time": "23:29:19"
+  }
+]

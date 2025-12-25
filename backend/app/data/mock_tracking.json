@@ -1,0 +1,18 @@
+[
+  {
+    "camera": "CAM-0012",
+    "location": "CP Metro Exit Gate 2",
+    "time": "14:24:10",
+    "confidence": 98.2,
+    "status": "CONFIRMED",
+    "method": "FACE+CLOTHING"
+  },
+  {
+    "camera": "CAM-0045",
+    "location": "Barakhamba Road Junction",
+    "time": "14:26:35",
+    "confidence": 96.8,
+    "status": "CONFIRMED",
+    "method": "RE-ID+VEHICLE"
+  }
+]
