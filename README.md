@@ -3,6 +3,8 @@
 
 NETRA-AI is a high-performance, AI-driven surveillance system designed for real-time suspect triangulation. This dashboard is tailored for the Delhi Police "Safe City" vision, providing a unified operational picture for tracking targets across city-wide camera grids.
 
+
+
 ## 🏛 Vision and Mission
 **Shanti (Peace):** Preventing crime through AI-enabled behavioral analysis.
 
@@ -14,6 +16,11 @@ NETRA-AI is a high-performance, AI-driven surveillance system designed for real-
 - **Frontend:** React 18, TypeScript, Tailwind CSS (Delhi Police Navy and Red Theme)
 - **Backend:** FastAPI (Python), WebSockets for real-time data streaming
 - **Logic:** SVG-based trajectory mapping and AI confidence scoring
+
+## 🎥 System Demo
+
+https://github.com/user-attachments/assets/66186da0-8d08-43d2-8a32-062f805ba5d6
+
 
 ## 📂 Project Structure
 ```
