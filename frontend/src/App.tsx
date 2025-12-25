@@ -1,306 +1,261 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Camera,
-  MapPin,
+  Shield,
+  Target,
   AlertCircle,
   Clock,
-  Activity,
-  Bell,
-  Route,
-  Zap,
-  Shield,
-  TrendingUp,
-  Target,
-  Radio,
   Brain,
-  CheckCircle,
-  Eye,
+  Bell,
+  Activity,
+  TrendingUp,
+  Radio,
+  Route,
+  MapPin,
   Download,
   Play,
+  CheckCircle,
+  Eye,
+  Zap,
 } from 'lucide-react'
 
-const metricColorMap: Record<string, string> = {
-  blue: 'from-blue-500 to-blue-600',
-  red: 'from-red-500 to-red-600',
-  green: 'from-green-500 to-green-600',
-  purple: 'from-purple-500 to-purple-600',
-  orange: 'from-orange-500 to-orange-600',
+type Alert = {
+  id: number
+  type: string
+  priority: 'HIGH' | 'MEDIUM' | 'CRITICAL'
+  loc: string
+  cam: string
+  conf: string
+  time: string
 }
 
-const NETRAAISystem = () => {
-  const [activeTab, setActiveTab] = useState<'command' | 'tracking'>('command')
-  const [alerts, setAlerts] = useState<any[]>([])
+type TrackNode = {
+  id: number
+  cam: string
+  loc: string
+  time: string
+  conf: number
+  match: boolean
+  type: string
+}
 
-  const metrics = {
-    activeCameras: 9847,
-    offlineCameras: 153,
-    activeIncidents: 23,
-    trackedToday: 147,
-    responseTime: '4.2 min',
-    systemUptime: 99.87,
-    aiAccuracy: 96.3,
-  }
+export default function App() {
+  const [tab, setTab] = useState<'command' | 'tracking'>('command')
+  const [duration, setDuration] = useState(13 * 60)
 
-  const incident = {
-    id: 'INC-2024-DL-00142',
-    type: 'Armed Robbery',
-    severity: 'CRITICAL',
-    location: 'Connaught Place Metro, Gate 2',
-    time: '14:23:45',
-    suspect: {
-      desc: 'Male, 25-30, Blue jacket, Black helmet',
-      lastSeen: 'Karol Bagh Metro',
-    },
-  }
+  /* ---------------- COMMAND CENTER DATA ---------------- */
+  const alerts: Alert[] = [
+    { id: 1, type: 'FACE MATCH', priority: 'HIGH', loc: 'Karol Bagh', cam: 'CAM-0443', conf: '91.6%', time: '23:30:19' },
+    { id: 2, type: 'VEHICLE ANPR', priority: 'MEDIUM', loc: 'CP Metro', cam: 'CAM-7417', conf: '87.1%', time: '23:29:19' },
+    { id: 3, type: 'VEHICLE ANPR', priority: 'MEDIUM', loc: 'Karol Bagh', cam: 'CAM-2368', conf: '93.4%', time: '23:24:55' },
+    { id: 4, type: 'FACE MATCH', priority: 'HIGH', loc: 'CP Metro', cam: 'CAM-2746', conf: '85.5%', time: '23:24:46' },
+  ]
+
+  /* ---------------- LIVE TRACKING DATA ---------------- */
+  const [route, setRoute] = useState<TrackNode[]>([
+    { id: 1, cam: 'CAM-0012', loc: 'CP Metro Exit Gate 2', time: '14:24:10', conf: 98.2, match: true, type: 'FACE+CLOTHING' },
+    { id: 2, cam: 'CAM-0045', loc: 'Barakhamba Road Junction', time: '14:26:35', conf: 96.8, match: true, type: 'RE-ID+VEHICLE' },
+    { id: 3, cam: 'CAM-0089', loc: 'Patel Chowk Crossing', time: '14:29:12', conf: 94.1, match: true, type: 'RE-ID' },
+    { id: 4, cam: 'CAM-0134', loc: 'RK Ashram Marg', time: '14:32:48', conf: 91.5, match: true, type: 'GAIT+RE-ID' },
+    { id: 5, cam: 'CAM-0201', loc: 'Karol Bagh Metro', time: '14:35:20', conf: 93.3, match: true, type: 'FACE+RE-ID' },
+    { id: 6, cam: 'CAM-0267', loc: 'Ajmal Khan Road', time: '~14:37:45', conf: 88, match: false, type: 'PREDICTED' },
+  ])
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const sample = [
-        {
-          type: 'WEAPON DETECTED',
-          priority: 'CRITICAL',
-          color: 'red',
-          loc: 'Chandni Chowk',
-          cam: 'CAM-2119',
-          conf: '86.7%',
-        },
-        {
-          type: 'VEHICLE ANPR',
-          priority: 'MEDIUM',
-          color: 'blue',
-          loc: 'CP Metro',
-          cam: 'CAM-5540',
-          conf: '95.2%',
-        },
-      ]
-      setAlerts(sample)
-    }, 3000)
-
-    return () => clearInterval(interval)
+    const t = setInterval(() => setDuration(d => d + 1), 1000)
+    return () => clearInterval(t)
   }, [])
 
-  const StatCard = ({
-    icon: Icon,
-    label,
-    value,
-    sub,
-    color,
-  }: any) => (
-    <div
-      className={`bg-gradient-to-br ${metricColorMap[color]} text-white rounded-xl p-5 shadow-lg`}
-    >
-      <div className="flex justify-between items-center mb-3">
-        <Icon size={22} />
-        <span className="text-xs bg-white/20 px-2 py-0.5 rounded">LIVE</span>
-      </div>
-      <div className="text-3xl font-bold">{value}</div>
-      <div className="text-sm opacity-90">{label}</div>
-      <div className="text-xs mt-1 opacity-80">{sub}</div>
-    </div>
-  )
+  useEffect(() => {
+    const t = setInterval(() => {
+      setRoute(prev => {
+        const copy = [...prev]
+        const next = copy.find(n => !n.match)
+        if (next) {
+          next.match = true
+          next.conf = +(90 + Math.random() * 6).toFixed(1)
+          next.type = 'FACE+RE-ID'
+          next.time = new Date().toLocaleTimeString()
+        }
+        return [...copy]
+      })
+    }, 6000)
+    return () => clearInterval(t)
+  }, [])
 
   return (
     <div className="min-h-screen bg-gray-100">
       {/* HEADER */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-6 py-4 shadow">
+      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="bg-white p-2 rounded">
               <Camera className="text-blue-600" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">
-                NETRA-AI Surveillance Platform
-              </h1>
-              <p className="text-sm text-blue-100">
+              <div className="text-xl font-bold">NETRA-AI Surveillance Platform</div>
+              <div className="text-sm text-blue-100">
                 National Enhanced Tracking & Real-time Analytics
-              </p>
+              </div>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-sm text-blue-100">
-              Delhi Police Command Center
-            </div>
-            <div className="text-xl font-bold">
-              {new Date().toLocaleTimeString()}
-            </div>
+            <div className="text-sm">Delhi Police Command Center</div>
+            <div className="text-lg font-bold">{new Date().toLocaleTimeString()}</div>
           </div>
         </div>
       </div>
 
-      {/* BODY */}
-      <div className="max-w-7xl mx-auto px-6 py-6">
-        {/* TABS */}
-        <div className="bg-white rounded-xl shadow mb-6 flex">
-          {[
-            { id: 'command', label: 'Command Center', icon: Shield },
-            { id: 'tracking', label: 'Live Tracking', icon: Target },
-          ].map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setActiveTab(t.id as any)}
-              className={`flex items-center gap-2 px-6 py-3 font-medium ${
-                activeTab === t.id
-                  ? 'border-b-2 border-blue-600 text-blue-600 bg-blue-50'
-                  : 'text-gray-600'
-              }`}
-            >
-              <t.icon size={18} />
-              {t.label}
-            </button>
-          ))}
+      {/* TABS */}
+      <div className="max-w-7xl mx-auto p-4">
+        <div className="flex bg-white rounded shadow mb-4">
+          <button onClick={() => setTab('command')} className={`px-6 py-3 flex gap-2 items-center ${tab === 'command' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`}>
+            <Shield size={18} /> Command Center
+          </button>
+          <button onClick={() => setTab('tracking')} className={`px-6 py-3 flex gap-2 items-center ${tab === 'tracking' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`}>
+            <Target size={18} /> Live Tracking
+          </button>
         </div>
 
-        {/* COMMAND CENTER */}
-        {activeTab === 'command' && (
+        {/* ================= COMMAND CENTER ================= */}
+        {tab === 'command' && (
           <>
             {/* METRICS */}
-            <div className="grid grid-cols-5 gap-4 mb-6">
-              <StatCard
-                icon={Camera}
-                label="Active Cameras"
-                value="9,847"
-                sub="153 offline"
-                color="blue"
-              />
-              <StatCard
-                icon={AlertCircle}
-                label="Active Incidents"
-                value="23"
-                sub="8 Critical • 15 Medium"
-                color="red"
-              />
-              <StatCard
-                icon={Target}
-                label="Tracked Today"
-                value="147"
-                sub="89 Apprehended"
-                color="green"
-              />
-              <StatCard
-                icon={Clock}
-                label="Response Time"
-                value="4.2 min"
-                sub="↓ 32% vs last month"
-                color="purple"
-              />
-              <StatCard
-                icon={Brain}
-                label="AI Accuracy"
-                value="96.3%"
-                sub="Uptime 99.87%"
-                color="orange"
-              />
+            <div className="grid grid-cols-5 gap-4 mb-4">
+              {[
+                { label: 'Active Cameras', value: '9,847', sub: '153 offline', icon: Camera, bg: 'bg-blue-500' },
+                { label: 'Active Incidents', value: '23', sub: '8 Critical • 15 Medium', icon: AlertCircle, bg: 'bg-red-500' },
+                { label: 'Tracked Today', value: '147', sub: '89 Apprehended', icon: Target, bg: 'bg-green-500' },
+                { label: 'Response Time', value: '4.2 min', sub: '↓ 32% vs last month', icon: Clock, bg: 'bg-purple-500' },
+                { label: 'AI Accuracy', value: '96.3%', sub: 'Uptime 99.87%', icon: Brain, bg: 'bg-orange-500' },
+              ].map((m, i) => (
+                <div key={i} className={`${m.bg} text-white p-4 rounded shadow`}>
+                  <div className="flex justify-between mb-2">
+                    <m.icon />
+                    <span className="text-xs bg-white/20 px-2 py-1 rounded">LIVE</span>
+                  </div>
+                  <div className="text-2xl font-bold">{m.value}</div>
+                  <div className="text-sm">{m.label}</div>
+                  <div className="text-xs">{m.sub}</div>
+                </div>
+              ))}
             </div>
 
-            {/* PANELS */}
-            <div className="grid grid-cols-3 gap-6">
-              {/* ALERTS */}
-              <div className="bg-white rounded-xl shadow p-4">
-                <div className="flex justify-between mb-3">
-                  <h3 className="font-bold flex gap-2">
-                    <Bell size={18} className="text-red-500" /> AI Alerts
-                  </h3>
-                  <span className="text-xs bg-red-100 text-red-600 px-2 rounded">
-                    LIVE
-                  </span>
+            <div className="grid grid-cols-3 gap-4">
+              {/* AI Alerts */}
+              <div className="bg-white rounded shadow p-3">
+                <div className="font-bold flex gap-2 items-center mb-2">
+                  <Bell /> AI Alerts
                 </div>
-                <div className="space-y-3">
-                  {alerts.map((a, i) => (
-                    <div
-                      key={i}
-                      className={`border-l-4 p-3 rounded ${
-                        a.priority === 'CRITICAL'
-                          ? 'border-red-500 bg-red-50'
-                          : 'border-blue-500 bg-blue-50'
-                      }`}
-                    >
-                      <div className="font-semibold">{a.type}</div>
-                      <div className="text-xs text-gray-600">
-                        📍 {a.loc} • 📷 {a.cam} • {a.conf}
+                {alerts.map(a => (
+                  <div key={a.id} className="border-l-4 border-orange-500 bg-orange-50 p-2 mb-2">
+                    <div className="font-semibold">{a.type} ({a.priority})</div>
+                    <div className="text-sm">{a.loc} • {a.cam} • {a.conf}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Active Ops */}
+              <div className="bg-white rounded shadow p-3">
+                <div className="font-bold flex gap-2 items-center mb-2">
+                  <Activity /> Active Operations
+                </div>
+                <div onClick={() => setTab('tracking')} className="cursor-pointer bg-red-50 border-2 border-red-300 p-3 rounded">
+                  <div className="font-bold">INC-2024-DL-00142</div>
+                  <div className="text-sm">Armed Robbery</div>
+                  <div className="text-xs mt-1">Tracked: 5 cameras • 3 units</div>
+                </div>
+              </div>
+
+              {/* Predictive */}
+              <div className="bg-white rounded shadow p-3">
+                <div className="font-bold flex gap-2 items-center mb-2">
+                  <TrendingUp /> Predictive Analytics
+                </div>
+                <div className="bg-red-50 border-l-4 border-red-500 p-2">
+                  <div className="font-semibold">HIGH CRIME PROBABILITY</div>
+                  <div className="text-sm">Karol Bagh Market</div>
+                  <div className="text-xs">Risk: 87/100</div>
+                </div>
+                <div className="mt-3 text-sm flex justify-between">
+                  <span>PCR Vans</span><span className="font-bold text-green-600">156/180</span>
+                </div>
+                <div className="text-sm flex justify-between">
+                  <span>Officers</span><span className="font-bold text-blue-600">834</span>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ================= LIVE TRACKING ================= */}
+        {tab === 'tracking' && (
+          <>
+            {/* INCIDENT HEADER */}
+            <div className="bg-red-700 text-white rounded p-4 mb-4 flex justify-between">
+              <div>
+                <div className="font-bold flex gap-2 items-center">
+                  <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                  INC-2024-DL-00142
+                  <span className="bg-white text-red-700 px-2 py-0.5 rounded text-xs">CRITICAL</span>
+                </div>
+                <div className="text-xl font-semibold mt-1">Armed Robbery</div>
+                <div className="grid grid-cols-4 gap-4 text-sm mt-2">
+                  <div>Origin<br /><b>Connaught Place Metro</b></div>
+                  <div>Last Seen<br /><b>Karol Bagh Metro</b></div>
+                  <div>Time<br /><b>14:23:45</b></div>
+                  <div>Duration<br /><b>{Math.floor(duration / 60)}m {duration % 60}s</b></div>
+                </div>
+              </div>
+              <div className="bg-white/20 px-4 py-2 rounded text-center">
+                <div className="text-xl font-bold">LIVE</div>
+                <div className="text-sm">5 Cameras • 3 Units</div>
+              </div>
+            </div>
+
+            {/* BODY */}
+            <div className="grid grid-cols-12 gap-4">
+              {/* MAP */}
+              <div className="col-span-7 bg-gray-900 rounded relative flex items-center justify-center text-gray-400">
+                <MapPin size={36} /> <span className="ml-2">Live Map View</span>
+              </div>
+
+              {/* PIPELINE */}
+              <div className="col-span-5 bg-white rounded shadow p-4 space-y-4 max-h-[520px] overflow-y-auto">
+                <div className="font-bold flex gap-2 items-center">
+                  <Route /> Tracking Pipeline
+                </div>
+                {route.map((p, i) => (
+                  <div key={p.id} className="flex gap-3">
+                    <div className="flex flex-col items-center">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${p.match ? 'bg-green-600 text-white' : 'bg-gray-300'}`}>
+                        {p.match ? <CheckCircle size={16} /> : <Eye size={16} />}
                       </div>
+                      {i < route.length - 1 && <div className="w-1 h-10 bg-gray-300" />}
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* ACTIVE OP */}
-              <div className="bg-white rounded-xl shadow p-4">
-                <h3 className="font-bold flex gap-2 mb-3">
-                  <Activity size={18} className="text-blue-500" />
-                  Active Operations
-                </h3>
-                <div className="bg-red-50 border border-red-300 rounded-lg p-4">
-                  <div className="flex justify-between mb-1">
-                    <span className="font-bold">{incident.id}</span>
-                    <span className="bg-red-600 text-white text-xs px-2 rounded">
-                      CRITICAL
-                    </span>
-                  </div>
-                  <div className="font-semibold">{incident.type}</div>
-                  <div className="text-xs text-gray-600 mt-1">
-                    📍 {incident.location}
-                  </div>
-                  <div className="text-xs mt-2 text-green-700 font-medium">
-                    ✅ Tracked: 5 cameras • 3 units deployed
-                  </div>
-                </div>
-              </div>
-
-              {/* PREDICTIVE */}
-              <div className="space-y-6">
-                <div className="bg-white rounded-xl shadow p-4">
-                  <h3 className="font-bold flex gap-2 mb-3">
-                    <TrendingUp size={18} className="text-purple-500" />
-                    Predictive Analytics
-                  </h3>
-                  <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded">
-                    <div className="font-semibold text-sm">
-                      HIGH CRIME PROBABILITY
+                    <div className={`flex-1 border rounded p-3 ${p.match ? 'bg-green-50 border-green-300' : 'bg-gray-50 border-dashed'}`}>
+                      <div className="flex justify-between">
+                        <div>
+                          <div className="font-semibold text-blue-600">{p.cam}</div>
+                          <div className="text-sm">{p.loc}</div>
+                          <span className="text-xs bg-blue-100 px-2 py-0.5 rounded">{p.type}</span>
+                        </div>
+                        <div className="text-right text-sm">
+                          <div>{p.time}</div>
+                          <div>{p.conf}%</div>
+                        </div>
+                      </div>
+                      {p.match && (
+                        <div className="flex gap-2 mt-2">
+                          <button className="text-xs bg-blue-600 text-white px-2 py-1 rounded flex gap-1">
+                            <Play size={12} /> View
+                          </button>
+                          <button className="text-xs bg-gray-600 text-white px-2 py-1 rounded flex gap-1">
+                            <Download size={12} /> Save
+                          </button>
+                        </div>
+                      )}
                     </div>
-                    <div className="text-xs text-gray-600">
-                      Karol Bagh Market (18:00–21:00)
-                    </div>
-                    <div className="text-xs">Risk: 87/100</div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl shadow p-4">
-                  <h3 className="font-bold flex gap-2 mb-3">
-                    <Radio size={18} className="text-green-500" />
-                    Field Units
-                  </h3>
-                  <div className="flex justify-between text-sm">
-                    <span>PCR Vans Active</span>
-                    <span className="font-bold text-green-600">156/180</span>
-                  </div>
-                  <div className="flex justify-between text-sm mt-1">
-                    <span>Officers Patrolling</span>
-                    <span className="font-bold text-blue-600">834</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* CORE CAPABILITIES */}
-            <div className="mt-8 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl p-6">
-              <h3 className="font-bold text-lg mb-4 flex gap-2">
-                <Brain size={20} /> NETRA-AI Core Capabilities
-              </h3>
-              <div className="grid grid-cols-6 gap-4">
-                {[
-                  'Face Recognition',
-                  'Person Re-ID',
-                  'Vehicle ANPR',
-                  'Weapon Detect',
-                  'Crowd Analysis',
-                  'Route Predict',
-                ].map((c) => (
-                  <div
-                    key={c}
-                    className="bg-white/10 rounded-lg p-4 text-sm text-center"
-                  >
-                    {c}
                   </div>
                 ))}
               </div>
@@ -311,5 +266,3 @@ const NETRAAISystem = () => {
     </div>
   )
 }
-
-export default NETRAAISystem
